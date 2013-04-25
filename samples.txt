@@ -1,0 +1,48 @@
+
+http://esper-epl-tryout.appspot.com/epltryout/mainform.html
+------------------
+
+
+create schema StockTick(symbol string, price double);
+
+--------
+Join
+--------
+
+@Name('Out')  select A.symbol, B.price-A.price as diff
+from StockTick.win:time(10 sec) A, StockTick.win:time(1 sec) B
+where A.symbol = B.symbol and A.price < B.price
+
+
+--------
+Pattern matching:
+--------
+
+create schema StockTick(symbol string, price double);
+
+select a.symbol, b.price-a.price as diff
+from pattern 
+  [every a=StockTick -> b=StockTick(symbol = a.symbol) 
+   where timer:within(10 sec)]
+
+-----------------------
+Events:
+-----------------------
+
+StockTick={symbol='GE', price=20}
+
+t=t.plus(5 seconds)
+
+StockTick={symbol='YHOO', price=50}
+StockTick={symbol='GE', price=25}
+
+t=t.plus(2 seconds)
+
+StockTick={symbol='GE', price=30}
+
+t=t.plus(3 seconds)
+t=t.plus(15 seconds)
+StockTick={symbol='YHOO', price=100}
+
+------------------
+
